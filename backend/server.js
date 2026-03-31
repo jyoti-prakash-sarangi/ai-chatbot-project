@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Groq setup (IMPORTANT CHANGE HERE)
+// ✅ Groq setup
 const openai = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
@@ -20,7 +20,7 @@ app.post("/chat", async (req, res) => {
     const userMessage = req.body.message;
 
     const completion = await openai.chat.completions.create({
-      model: "llama-3.3-70b-versatile",  // FREE model
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "user", content: userMessage }
       ],
@@ -32,12 +32,16 @@ app.post("/chat", async (req, res) => {
 
   } catch (error) {
     console.error("Error:", error);
-    res.json({
+
+    res.status(500).json({
       reply: "Error getting response from AI 😢",
     });
   }
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+// ✅ IMPORTANT FIX FOR DEPLOYMENT
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
