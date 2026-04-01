@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
+import Auth from "./Auth";
 
 function App() {
+  // 🔐 Auth state
+  const [user, setUser] = useState(null);
+
+  // 💬 Chat system
   const [chats, setChats] = useState([
     { id: 1, messages: [] }
   ]);
@@ -79,6 +84,11 @@ function App() {
     setCurrentChatId(newChat.id);
   };
 
+  // 🔐 SHOW LOGIN FIRST
+  if (!user) {
+    return <Auth onLogin={setUser} />;
+  }
+
   return (
     <div style={styles.container}>
       
@@ -87,6 +97,10 @@ function App() {
         <button onClick={createNewChat} style={styles.newChatBtn}>
           + New Chat
         </button>
+
+        <div style={{ marginBottom: "10px", fontSize: "12px", color: "#aaa" }}>
+          Logged in as: {user.email}
+        </div>
 
         {chats.map(chat => (
           <div
@@ -105,9 +119,7 @@ function App() {
       {/* Chat Area */}
       <div style={styles.chatArea}>
 
-        {/* Messages */}
         <div style={styles.messages}>
-          
           {currentChat.messages.map((msg, index) => (
             <div
               key={index}
@@ -126,17 +138,14 @@ function App() {
           ))}
 
           {loading && (
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <div style={styles.botTyping}>
-                Typing...
-              </div>
+            <div style={{ display: "flex" }}>
+              <div style={styles.botTyping}>Typing...</div>
             </div>
           )}
 
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input */}
         <div style={styles.inputArea}>
           <input
             value={input}
@@ -165,9 +174,7 @@ const styles = {
   sidebar: {
     width: "260px",
     background: "#202123",
-    padding: "10px",
-    display: "flex",
-    flexDirection: "column"
+    padding: "10px"
   },
   newChatBtn: {
     padding: "10px",
@@ -202,7 +209,6 @@ const styles = {
     maxWidth: "60%",
     padding: "12px 14px",
     borderRadius: "12px",
-    lineHeight: "1.5",
     whiteSpace: "pre-wrap",
     boxShadow: "0 2px 5px rgba(0,0,0,0.2)"
   },
