@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 function App() {
   const [chats, setChats] = useState([
@@ -8,7 +8,14 @@ function App() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const chatEndRef = useRef(null);
+
   const currentChat = chats.find(chat => chat.id === currentChatId);
+
+  // 🔥 Auto scroll
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chats, loading]);
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
@@ -30,9 +37,9 @@ function App() {
       const response = await fetch("https://ai-chatbot-backend-6sf1.onrender.com/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input })
       });
 
       const data = await response.json();
@@ -73,37 +80,21 @@ function App() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#343541", color: "white" }}>
+    <div style={styles.container}>
       
       {/* Sidebar */}
-      <div style={{ width: "260px", background: "#202123", padding: "10px" }}>
-        <button
-          onClick={createNewChat}
-          style={{
-            width: "100%",
-            padding: "10px",
-            border: "1px solid #444",
-            borderRadius: "5px",
-            background: "transparent",
-            color: "white",
-            cursor: "pointer",
-            marginBottom: "10px"
-          }}
-        >
+      <div style={styles.sidebar}>
+        <button onClick={createNewChat} style={styles.newChatBtn}>
           + New Chat
         </button>
 
-        {/* Chat List */}
         {chats.map(chat => (
           <div
             key={chat.id}
             onClick={() => setCurrentChatId(chat.id)}
             style={{
-              padding: "10px",
-              cursor: "pointer",
-              background: chat.id === currentChatId ? "#343541" : "transparent",
-              borderRadius: "5px",
-              marginBottom: "5px"
+              ...styles.chatItem,
+              background: chat.id === currentChatId ? "#343541" : "transparent"
             }}
           >
             Chat {chat.id.toString().slice(-4)}
@@ -112,31 +103,23 @@ function App() {
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        
+      <div style={styles.chatArea}>
+
         {/* Messages */}
-        <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
+        <div style={styles.messages}>
           
           {currentChat.messages.map((msg, index) => (
             <div
               key={index}
               style={{
                 display: "flex",
-                justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
-                marginBottom: "15px"
+                justifyContent: msg.sender === "user" ? "flex-end" : "flex-start"
               }}
             >
-              <div
-                style={{
-                  maxWidth: "60%",
-                  padding: "12px",
-                  borderRadius: "10px",
-                  background: msg.sender === "user" ? "#19c37d" : "#444654",
-                  color: "white",
-                  lineHeight: "1.5",
-                  whiteSpace: "pre-wrap"
-                }}
-              >
+              <div style={{
+                ...styles.message,
+                background: msg.sender === "user" ? "#19c37d" : "#444654"
+              }}>
                 {msg.text}
               </div>
             </div>
@@ -144,56 +127,112 @@ function App() {
 
           {loading && (
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <div
-                style={{
-                  background: "#444654",
-                  padding: "12px",
-                  borderRadius: "10px"
-                }}
-              >
+              <div style={styles.botTyping}>
                 Typing...
               </div>
             </div>
           )}
 
+          <div ref={chatEndRef} />
         </div>
 
         {/* Input */}
-        <div style={{ padding: "15px", borderTop: "1px solid #444" }}>
-          <div style={{ display: "flex", background: "#40414f", borderRadius: "8px" }}>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Send a message..."
-              style={{
-                flex: 1,
-                padding: "12px",
-                border: "none",
-                outline: "none",
-                background: "transparent",
-                color: "white"
-              }}
-            />
-            <button
-              onClick={sendMessage}
-              style={{
-                padding: "12px 20px",
-                background: "#19c37d",
-                border: "none",
-                color: "white",
-                cursor: "pointer",
-                borderRadius: "8px"
-              }}
-            >
-              Send
-            </button>
-          </div>
+        <div style={styles.inputArea}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Send a message..."
+            style={styles.input}
+          />
+          <button onClick={sendMessage} style={styles.sendBtn}>
+            Send
+          </button>
         </div>
 
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    display: "flex",
+    height: "100vh",
+    background: "#343541",
+    color: "white"
+  },
+  sidebar: {
+    width: "260px",
+    background: "#202123",
+    padding: "10px",
+    display: "flex",
+    flexDirection: "column"
+  },
+  newChatBtn: {
+    padding: "10px",
+    border: "1px solid #444",
+    borderRadius: "6px",
+    background: "transparent",
+    color: "white",
+    cursor: "pointer",
+    marginBottom: "10px"
+  },
+  chatItem: {
+    padding: "10px",
+    cursor: "pointer",
+    borderRadius: "6px",
+    marginBottom: "5px",
+    transition: "0.2s"
+  },
+  chatArea: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column"
+  },
+  messages: {
+    flex: 1,
+    padding: "20px",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  message: {
+    maxWidth: "60%",
+    padding: "12px 14px",
+    borderRadius: "12px",
+    lineHeight: "1.5",
+    whiteSpace: "pre-wrap",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.2)"
+  },
+  botTyping: {
+    background: "#444654",
+    padding: "12px",
+    borderRadius: "10px"
+  },
+  inputArea: {
+    padding: "15px",
+    borderTop: "1px solid #444"
+  },
+  input: {
+    width: "85%",
+    padding: "12px",
+    border: "none",
+    outline: "none",
+    background: "#40414f",
+    color: "white",
+    borderRadius: "8px"
+  },
+  sendBtn: {
+    padding: "12px 18px",
+    marginLeft: "10px",
+    background: "#19c37d",
+    border: "none",
+    color: "white",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }
+};
 
 export default App;
